@@ -7,8 +7,13 @@ const bodyParser = require('body-parser');
 const cookie = require('cookie');
 const expressSession = require('express-session');
 const methodOverride = require('method-override');
+const mongoose = require('mongoose');
+const bluebird = require('bluebird');
 const config = require('./config');
 const error = require('./middlewares/error');
+mongoose.Promise = bluebird;
+var db = mongoose.connect('mongodb://localhost:27017/ntalk', { useNewUrlParser: true });
+global.db = mongoose.connection;
 
 const app = express();
 const server = http.Server(app);
@@ -18,12 +23,14 @@ const store = new expressSession.MemoryStore();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(expressSession({
+  resave: true,
+  saveUninitialized: true,
   store,
   name: config.sessionKey,
   secret: config.sessionSecret
 }));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
 
